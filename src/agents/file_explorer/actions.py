@@ -4,7 +4,8 @@ from typing import List
 from src.framework.actions.action import Action
 
 def read_project_file(name: str) -> str:
-    with open(name, "r") as f:
+    """Read a file from the project"""
+    with open(name, "r", encoding='utf-8', errors='ignore') as f:
         return f.read()
 
 def list_project_files() -> List[str]:
@@ -79,8 +80,8 @@ def list_project_files_recursive(root_dir: str = None, pattern: str = "*.py",
             # Find matching files in current directory
             for filename in fnmatch.filter(files, pattern):
                 full_path = os.path.join(root, filename)
-                # Convert to relative path for cleaner output
-                relative_path = os.path.relpath(full_path, ".")
+                # Use relative path from the search root, not current directory
+                relative_path = os.path.relpath(full_path, root_dir)
                 matches.append(relative_path)
 
         print(f"Found {len(matches)} files matching '{pattern}' in {root_dir}")
