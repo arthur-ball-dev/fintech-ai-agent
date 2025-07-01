@@ -19,8 +19,7 @@ from src.agents.file_explorer.actions import (
     list_project_files,
     list_project_files_recursive, 
     find_project_root,
-    read_project_file,
-    create_file_explorer_actions
+    read_project_file
 )
 
 
@@ -373,51 +372,6 @@ class TestPerformance:
             # Limited search should be faster and find fewer files
             assert len(limited_results) < len(unlimited_results)
             assert limited_time <= unlimited_time + 0.1  # Allow small margin for timing variations
-
-
-class TestActionRegistry:
-    """Test action registry integration"""
-    
-    def test_create_file_explorer_actions(self):
-        """Test that all actions are properly created"""
-        actions = create_file_explorer_actions()
-        
-        # Should return list of Action objects
-        assert isinstance(actions, list)
-        assert len(actions) > 0
-        
-        # Check for expected actions
-        action_names = [action.name for action in actions]
-        expected_actions = [
-            "list_project_files",
-            "list_project_files_recursive", 
-            "read_project_file",
-            "terminate"
-        ]
-        
-        for expected in expected_actions:
-            assert expected in action_names
-    
-    def test_recursive_action_parameters(self):
-        """Test recursive action has correct parameters"""
-        actions = create_file_explorer_actions()
-        recursive_action = next(
-            action for action in actions 
-            if action.name == "list_project_files_recursive"
-        )
-        
-        # Check parameter structure
-        params = recursive_action.parameters
-        assert params["type"] == "object"
-        assert "properties" in params
-        
-        properties = params["properties"]
-        assert "root_dir" in properties
-        assert "pattern" in properties
-        assert "max_depth" in properties
-        
-        # Check parameter defaults
-        assert properties["pattern"]["default"] == "*.py"
 
 
 class TestIntegration:

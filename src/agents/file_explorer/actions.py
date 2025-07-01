@@ -1,18 +1,24 @@
+"""
+File Explorer Actions using the decorator system.
+"""
 import os
 import fnmatch
 from typing import List
-from src.framework.actions.action import Action
+from src.framework.actions.decorators import register_tool
 
+@register_tool(tags=["file_operations", "read"])
 def read_project_file(name: str) -> str:
     """Read a file from the project"""
     with open(name, "r", encoding='utf-8', errors='ignore') as f:
         return f.read()
 
+@register_tool(tags=["file_operations", "list"])
 def list_project_files() -> List[str]:
     all_files = os.listdir(".")
     print(f"the list of project files in the listdir is {all_files}")
     return sorted([file for file in os.listdir(".") if file.endswith(".py")])
 
+@register_tool(tags=["file_operations", "search"])
 def find_project_root(start_path: str = ".") -> str:
     """
     Find project root by looking for common project markers
@@ -36,7 +42,7 @@ def find_project_root(start_path: str = ".") -> str:
     # Fallback to current directory if no markers found
     return os.path.abspath(start_path)
 
-
+@register_tool(tags=["file_operations", "search", "recursive"])
 def list_project_files_recursive(root_dir: str = None, pattern: str = "*.py",
                                  max_depth: int = None) -> List[str]:
     """
@@ -91,65 +97,14 @@ def list_project_files_recursive(root_dir: str = None, pattern: str = "*.py",
         print(f"Error during recursive search: {e}")
         return []
 
-def create_file_explorer_actions():
-    """Create and return file explorer specific actions"""
-    actions = [
-        Action(
-            name="list_project_files",
-            function=list_project_files,
-            description="Lists all Python files in the project.",
-            parameters={
-                "type": "object",
-                "properties": {},
-                "required": []
-            },
-            terminal=False
-        ),
-        Action(
-            name="list_project_files_recursive",
-            function=list_project_files_recursive,
-            description="Recursively lists files matching a pattern throughout the entire project structure. Automatically detects project root for reliable results.",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "root_dir": {"type": "string",
-                                 "description": "Starting directory for search (None = auto-detect project root from .git, requirements.txt, etc.)",
-                                 "default": None},
-                    "pattern": {"type": "string",
-                                "description": "File pattern to match (e.g., '*.py', '*.csv', '*.md')",
-                                "default": "*.py"},
-                    "max_depth": {"type": "integer",
-                                  "description": "Maximum depth to search (optional, for performance)"}
-                },
-                "required": []
-            },
-            terminal=False
-        ),
-        Action(
-            name="read_project_file",
-            function=read_project_file,
-            description="Reads a file from the project.",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string", "description": "The name of the file to read"}
-                },
-                "required": ["name"]
-            },
-            terminal=False
-        ),
-        Action(
-            name="terminate",
-            function=lambda message: f"{message}\nTerminating...",
-            description="Terminates the session and prints the message to the user.",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "message": {"type": "string", "description": "The final message to display"}
-                },
-                "required": ["message"]
-            },
-            terminal=True
-        )
-    ]
-    return actions
+@register_tool(tags=["system"], terminal=True)
+def terminate(message: str) -> str:
+    """Terminates the agent's execution with a final message.
+
+    Args:
+        message: The final message to return before terminating
+
+    Returns:
+        The message with a termination note appended
+    """
+    return f"{message}\nTerminating..."

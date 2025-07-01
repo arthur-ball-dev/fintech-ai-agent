@@ -1,5 +1,14 @@
+# Development dependencies for File Explorer AI Agent Framework
+# For testing dependencies, use: pip install -r requirements-test.txt
+
+# Include production dependencies
 -r requirements.txt
-pytest>=7.0.0
-black>=23.0.0
-flake8>=6.0.0
-mypy>=1.0.0
+
+# Code quality tools
+black>=23.0.0               # Code formatting
+flake8>=6.0.0              # Linting  
+mypy>=1.5.0                # Type checking
+
+# Optional: Documentation generation (uncomment if needed)
+# mkdocs>=1.5.0             # Documentation site generation
+# mkdocs-material>=9.0.0    # Material theme for docs

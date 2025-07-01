@@ -1,252 +1,310 @@
-# File Explorer AI Agent
+# File Explorer AI Agent Framework
 
-**[Under Development]** AI-powered file exploration agent for comprehensive project analysis and document discovery.
+A Python-based AI agent framework implementing the GAME (Goals, Actions, Memory, Environment) pattern with decorator-based tool registration and LLM-agnostic design using LiteLLM.
 
-A flexible framework for building AI agents using the **GAME (Goals, Actions, Memory, Environment)** pattern, specifically designed for intelligent file system navigation and analysis.
+## 🎯 Key Features
 
-## 🚀 Features
+**🔧 Decorator-Based Tool System**
+- `@register_tool` decorator with automatic metadata extraction
+- Tag-based tool organization and filtering
+- Global tool registry with automatic discovery
+- JSON schema generation from Python type hints
 
-### Core Capabilities
-- **Intelligent File Discovery**: Recursive search across entire project structures
-- **Smart Project Root Detection**: Automatically identifies project boundaries using common markers
-- **Pattern-Based Filtering**: Support for multiple file types (*.py, *.csv, *.pdf, *.md, etc.)
-- **Conversational Interface**: Natural language commands for file operations
-- **Enterprise-Ready**: Robust error handling and performance optimizations
+**🤖 Specialized Agent Types**
+- **File Explorer Agent**: General file system navigation and analysis
+- **README Generator Agent**: Project documentation creation
+- **Code Analysis Agent**: Project structure analysis and insights
 
-### Enhanced File Operations
-- **Recursive Directory Search**: Discovers files throughout complete project hierarchies
-- **Content Analysis**: LLM-powered intelligent file content processing
-- **Metadata Extraction**: File size, modification dates, and structural information
-- **Depth-Limited Search**: Configurable search depth for performance control
+**🌐 LLM-Agnostic Architecture**
+- Multi-provider support via LiteLLM (OpenAI, Anthropic, Google, etc.)
+- Simple model switching with parameter support
+- Unified interface across different LLM providers
 
-## 📋 Requirements
+**🧪 Comprehensive Testing**
+- Unit tests for individual components
+- Integration tests for framework interaction
+- Performance tests for large directory handling
+- Cross-platform compatibility validation
 
-- Python 3.8+
-- OpenAI API key (set as environment variable)
-- Virtual environment (recommended)
+## 🚀 Quick Start
 
-## 🛠️ Installation
+### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/arthur-ball-dev/file-explorer-ai-agent.git
-   cd file-explorer-ai-agent
-   ```
+```bash
+# Clone the repository
+git clone <repository-url>
+cd file-explorer-ai-agent-dev
 
-2. **Create and activate virtual environment:**
-   ```bash
-   python -m venv .venv
-   
-   # Windows
-   .venv\Scripts\activate
-   
-   # Mac/Linux  
-   source .venv/bin/activate
-   ```
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Install dependencies
+pip install -r requirements.txt
+```
 
-4. **Set OpenAI API key:**
-   ```bash
-   # Windows
-   set OPENAI_API_KEY=your-api-key-here
-   
-   # Mac/Linux
-   export OPENAI_API_KEY="your-api-key-here"
-   ```
+### Setup
 
-## 🚀 Usage
+Set your API key:
+```bash
+# Windows
+set OPENAI_API_KEY=your_openai_key_here
+
+# macOS/Linux
+export OPENAI_API_KEY=your_openai_key_here
+```
 
 ### Basic Usage
+
+```python
+from src.agents.file_explorer.agent import create_file_explorer_agent
+
+# Create and run agent
+agent = create_file_explorer_agent()
+memory = agent.run("Analyze this project and create documentation")
+
+# Get results
+final_result = memory.get_memories()[-1]
+print(final_result['content'])
+```
+
+### Run the Demo
+
 ```bash
-python -m src.examples.run_file_explorer
+python src/examples/run_file_explorer.py
 ```
 
-### Example Commands
+## 🏗️ Architecture Overview
 
-#### File Discovery
-- *"List all Python files in the entire project"*
-- *"Find all CSV files that might contain data"*
-- *"Show me all markdown documentation files"*
-
-#### Project Analysis  
-- *"Analyze the code structure and suggest improvements"*
-- *"Create a summary of all Python files in the project"*
-- *"Find all files related to testing"*
-
-#### Content Analysis
-- *"Read the main agent file and explain how it works"*
-- *"Analyze the requirements.txt and list all dependencies"*
-- *"Examine the test files and describe the testing strategy"*
-
-## 🏗️ Architecture
-
-### GAME Framework Components
-
+### Project Structure
 ```
-├── src/
-│   ├── framework/           # Core GAME framework
-│   │   ├── core/           # Agent orchestration & goals
-│   │   ├── actions/        # Action registry & definitions  
-│   │   ├── memory/         # Conversation & context memory
-│   │   ├── environment/    # Execution environment
-│   │   ├── language/       # LLM integration & prompting
-│   │   └── llm/           # Language model client
-│   ├── agents/            # Agent implementations
-│   │   └── file_explorer/ # File exploration specialist
-│   └── examples/          # Usage demonstrations
-├── tests/                 # Comprehensive test suite
-└── docs/                  # Documentation
+src/
+├── agents/file_explorer/
+│   ├── actions.py           # Decorated tool functions
+│   └── agent.py            # Agent factory functions
+├── framework/
+│   ├── actions/
+│   │   ├── decorators.py   # Tool registration system
+│   │   ├── registry.py     # Action registries
+│   │   └── action.py       # Base action class
+│   ├── core/               # Core GAME components
+│   ├── llm/               # LLM integration (LiteLLM)
+│   ├── language/          # Language processing
+│   ├── memory/            # Memory management
+│   └── environment/       # Action execution
+└── examples/              # Usage examples
 ```
 
-### Enhanced Actions Available
+### Decorator System Example
 
-| Action | Description | Use Case |
-|--------|-------------|----------|
-| `list_project_files` | Lists Python files in current directory | Quick local file discovery |
-| `list_project_files_recursive` | **[NEW]** Recursively searches entire project | Enterprise-scale file discovery |
-| `read_project_file` | Reads and analyzes file contents | Content analysis and processing |
-| `terminate` | Completes session with results | Task completion |
+```python
+@register_tool(tags=["file_operations", "read"])
+def read_project_file(name: str) -> str:
+    """Read a file from the project"""
+    with open(name, "r", encoding='utf-8', errors='ignore') as f:
+        return f.read()
+```
 
-## 🔧 Configuration
+### Tag-Based Registry Filtering
 
-### Project Root Detection
-The agent automatically detects project root using these markers:
-- `.git` (version control root)
-- `requirements.txt` (Python project dependencies)
-- `pyproject.toml` (modern Python project configuration)
-- `setup.py` (traditional Python package)
-- `.gitignore` (project boundary indicator)
+```python
+from src.framework.actions.registry import PythonActionRegistry
 
-### Search Patterns
-Supports standard glob patterns:
-- `*.py` - Python source files
-- `*.csv` - Comma-separated values data
-- `*.json` - JSON configuration/data files
-- `*.md` - Markdown documentation
-- `*.txt` - Text files
-- `*` - All files
+# Create registry with specific tools
+file_registry = PythonActionRegistry(tags=["file_operations"])
+search_registry = PythonActionRegistry(tags=["search"])
+complete_registry = PythonActionRegistry(tags=["file_operations", "system"])
+```
+
+## 🛠️ Available Tools
+
+| Tool | Description | Tags |
+|------|-------------|------|
+| `read_project_file` | Read file contents | `file_operations`, `read` |
+| `list_project_files` | List Python files in current directory | `file_operations`, `list` |
+| `find_project_root` | Find project root using common markers | `file_operations`, `search` |
+| `list_project_files_recursive` | Recursively search for files by pattern | `file_operations`, `search`, `recursive` |
+| `terminate` | End agent execution with message | `system` |
+
+## 🤖 Agent Types
+
+### File Explorer Agent
+```python
+agent = create_file_explorer_agent()
+```
+- **Purpose**: General file exploration and documentation
+- **Tools**: File operations + system tools
+- **Use Cases**: Project analysis, documentation generation
+
+### README Generator Agent
+```python
+agent = create_readme_agent()
+```
+- **Purpose**: Specialized README creation
+- **Tools**: File operations + system tools  
+- **Use Cases**: Automated project documentation
+
+### Code Analysis Agent
+```python
+agent = create_analysis_agent()
+```
+- **Purpose**: Code structure analysis
+- **Tools**: File operations + search + system tools
+- **Use Cases**: Architecture review, improvement suggestions
+
+## 🌐 LLM Provider Support
+
+The framework uses LiteLLM for multi-provider support:
+
+```python
+from src.framework.llm.client import generate_response
+
+# Different models/providers
+response = generate_response(prompt, model="gpt-4o")           # OpenAI
+response = generate_response(prompt, model="gpt-4o-mini")     # OpenAI (cheaper)
+response = generate_response(prompt, model="claude-3-5-sonnet-20241022")  # Anthropic
+```
 
 ## 🧪 Testing
 
-### Test Suite Overview
-**Comprehensive enterprise-grade testing with 94.7% success rate (18/19 tests passing)**
+### Run Tests
 
-#### Test Categories
-- **Unit Tests**: Individual function validation and backward compatibility
-- **Integration Tests**: End-to-end workflow simulation and action registry testing
-- **Performance Tests**: Large directory handling and optimization validation
-- **Edge Case Tests**: Error handling, unicode support, permission scenarios
-- **Project Root Detection**: Intelligent project boundary identification
-- **Cross-Platform Tests**: Windows/Unix compatibility validation
-
-#### Run Test Suite
 ```bash
-# Install testing dependencies
-pip install pytest pytest-cov pytest-mock
-
 # Run all tests
-python -m pytest tests/ -v
-
-# Run with coverage report
-python -m pytest tests/ --cov=src --cov-report=html
+pytest
 
 # Run specific test categories
-python -m pytest tests/ -k "performance" -v    # Performance tests
-python -m pytest tests/ -k "integration" -v    # Integration tests
-python -m pytest tests/ -k "unit" -v          # Unit tests
+pytest tests/unit/          # Unit tests
+pytest tests/integration/   # Integration tests
+
+# Run with coverage
+pytest --cov=src
 ```
 
-#### Test Coverage
-- ✅ **18 passing tests** across 6 comprehensive test categories
-- ✅ **Cross-platform compatibility** (Windows, macOS, Linux)
-- ✅ **Performance validation** for large-scale directory operations
-- ✅ **Error handling** including permission errors and unicode support
-- ✅ **Memory efficiency** testing with configurable depth limits
-- ✅ **Production readiness** validation for enterprise environments
+### Test Structure
 
-### Test Results Summary
+- **Unit Tests**: Test individual functions and components
+- **Integration Tests**: Test framework component interaction
+- **Performance Tests**: Test with large directory structures
+- **Edge Case Tests**: Test error handling and unusual scenarios
+
+## 📋 Requirements
+
+- **Python 3.8+**
+- **LiteLLM** for multi-provider LLM support
+- **OpenAI API key** (or other LLM provider key)
+- **Pytest** for testing
+
+## 💡 Usage Examples
+
+### Creating Custom Tools
+
+```python
+from src.framework.actions.decorators import register_tool
+
+@register_tool(tags=["analysis"])
+def count_lines(file_path: str) -> int:
+    """Count lines in a file."""
+    with open(file_path, 'r') as f:
+        return len(f.readlines())
+
+# Tool automatically available to agents with "analysis" tag
 ```
-=================== 18 passed, 1 skipped in 0.XX seconds ===================
 
-Test Categories:
-✅ Basic Functionality (3/3 tests)
-✅ Recursive Search (5/5 tests) 
-✅ Project Root Detection (3/3 tests)
-✅ Error Handling (3/3 tests)
-✅ Performance (2/2 tests)
-✅ Action Registry (2/2 tests)
-✅ Integration (1/1 tests)
-⏸️ Symlink Handling (1 skipped on Windows)
+### Custom Agent Creation
+
+```python
+from src.framework.core.agent import Agent
+from src.framework.core.goals import Goal
+from src.framework.actions.registry import PythonActionRegistry
+from src.framework.language.function_calling import AgentFunctionCallingActionLanguage
+from src.framework.environment.environment import Environment
+from src.framework.llm.client import generate_response
+
+# Define goals
+goals = [
+    Goal(priority=1, name="Task", description="Complete the analysis task"),
+    Goal(priority=2, name="Report", description="Provide results")
+]
+
+# Create registry with specific tools
+registry = PythonActionRegistry(tags=["file_operations", "analysis"])
+
+# Create custom agent
+agent = Agent(
+    goals=goals,
+    agent_language=AgentFunctionCallingActionLanguage(),
+    action_registry=registry,
+    generate_response=generate_response,
+    environment=Environment()
+)
 ```
 
-## 📚 Development
+### Different Model Usage
 
-### Contributing
-1. Create feature branch: `git checkout -b feature/your-enhancement`
-2. Implement changes with comprehensive tests
-3. Update documentation
-4. Submit pull request with detailed description
+```python
+# Create agents with different models
+openai_agent = create_file_explorer_agent()  # Uses default gpt-4o
+# Custom model usage requires modifying agent creation
 
-### Quality Standards
-- **Test Coverage**: All new features must include comprehensive tests
-- **Documentation**: Update README, API docs, and changelog
-- **Cross-Platform**: Ensure Windows, macOS, and Linux compatibility
-- **Performance**: Validate performance with large directory structures
-- **Security**: Follow secure coding practices and input validation
+# For custom models, create agent manually:
+custom_agent = Agent(
+    goals=goals,
+    agent_language=AgentFunctionCallingActionLanguage(),
+    action_registry=registry,
+    generate_response=lambda p: generate_response(p, model="gpt-4o-mini"),
+    environment=Environment()
+)
+```
 
-### Roadmap
-- [x] **Recursive directory search** with project root detection
-- [x] **Comprehensive test suite** with enterprise-grade coverage
-- [ ] **CI/CD pipeline** with automated testing and deployment
-- [ ] **Advanced content search** capabilities within files
-- [ ] **File type intelligence** and metadata extraction
-- [ ] **Integration** with external document management systems
-- [ ] **Multi-agent collaboration** for complex analysis tasks
-- [ ] **Financial document processing** (CSV, PDF, Excel)
+## 🔧 Configuration
 
-## 🔐 Security
+### Environment Variables
+```bash
+# Required
+export OPENAI_API_KEY="your-openai-key"
 
-- **No sensitive data storage**: All processing in memory
-- **API key protection**: Environment variable configuration only
-- **Safe file operations**: Read-only access with comprehensive error handling
-- **Path traversal protection**: Automatic filtering of system directories
-- **Input validation**: Robust parameter checking and sanitization
+# Optional (for other providers)
+export ANTHROPIC_API_KEY="your-anthropic-key"
+```
 
-## 🎯 Performance
+### Project Structure Requirements
+The framework automatically detects project roots using these markers:
+- `.git/` directory
+- `requirements.txt`
+- `pyproject.toml`
+- `setup.py`
+- `.gitignore`
 
-### Optimizations
-- **Smart directory filtering**: Excludes `.git`, `__pycache__`, `.venv` automatically
-- **Configurable depth limiting**: Prevents deep recursion performance issues
-- **Memory-efficient processing**: Handles large codebases without memory bloat
-- **Cross-platform path handling**: Optimized for Windows and Unix systems
+## 🤝 Contributing
 
-### Benchmarks
-- **Large directory handling**: Tested with 1000+ files across 100+ directories
-- **Pattern matching**: Efficient glob pattern processing
-- **Memory usage**: Minimal memory footprint for large project scanning
-- **Response time**: Sub-second response for typical project structures
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+### Development Setup
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run tests before committing
+pytest tests/
+```
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License - see LICENSE file for details.
 
-## 🤝 Support
+## 🚀 Future Enhancements
 
-For questions, issues, or feature requests:
-- Open an issue on GitHub
-- Contact: arthur-ball-dev on GitHub
+- Additional LLM provider integrations
+- More specialized agent types
+- Enhanced tool categorization
+- Performance optimizations
+- GUI interface for agent interaction
 
 ---
 
-## 📊 Project Stats
-
-![Tests](https://img.shields.io/badge/tests-18%20passing-green)
-![Coverage](https://img.shields.io/badge/coverage-94.7%25-brightgreen)
-![Python](https://img.shields.io/badge/python-3.8%2B-blue)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
-
-**Note**: This project demonstrates enterprise-level AI agent development practices suitable for financial technology and document analysis applications.
+**Built with the GAME framework pattern for reliable, extensible AI agent development.**

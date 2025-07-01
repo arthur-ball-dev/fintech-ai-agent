@@ -1,276 +1,436 @@
 # API Documentation
 
-## File Explorer Actions Reference
+Complete reference for the File Explorer AI Agent Framework based on actual implementation.
 
-### Enhanced Actions (v0.2.0)
+## Table of Contents
+1. [Decorator System](#decorator-system)
+2. [Action Registry](#action-registry)
+3. [Core Framework](#core-framework)
+4. [Available Tools](#available-tools)
+5. [Agent Factories](#agent-factories)
+6. [LLM Integration](#llm-integration)
 
-#### `list_project_files_recursive`
+## Decorator System
 
-**Purpose**: Recursively discover files throughout entire project structure with intelligent project root detection.
-
-**Function Signature**:
-```python
-def list_project_files_recursive(
-    root_dir: str = None, 
-    pattern: str = "*.py", 
-    max_depth: int = None
-) -> List[str]
-```
-
-**Parameters**:
-| Parameter | Type | Default | Description |
-|## Testing and Quality Assurance
-
-### Test Suite Coverage
-The File Explorer AI Agent includes comprehensive enterprise-grade testing with **94.7% success rate** (18 passing tests, 1 skipped on Windows).
-
-#### Test Categories
-- **Unit Tests (3)**: Function validation and backward compatibility
-- **Integration Tests (3)**: End-to-end workflow and action registry validation  
-- **Performance Tests (2)**: Large directory handling and optimization
-- **Edge Case Tests (3)**: Error handling, unicode, and platform scenarios
-- **Project Root Detection (3)**: Intelligent boundary identification
-- **Recursive Search Tests (5)**: Core functionality validation
-
-#### Quality Metrics
-- **Cross-Platform**: Windows, macOS, Linux compatibility validated
-- **Performance**: Handles 1000+ files across 100+ directories efficiently
-- **Security**: Path traversal protection and safe file operations
-- **Memory**: Optimized processing with configurable depth limits
-- **Encoding**: UTF-8 support for international file content
-
-#### Running Tests
-```bash
-# Comprehensive test suite
-python -m pytest tests/ -v
-
-# With coverage reporting
-python -m pytest tests/ --cov=src --cov-report=html
-
-# Performance benchmarks only
-python -m pytest tests/ -k "performance" -v
-```
-
------------|------|---------|-------------|
-| `root_dir` | `str` | `None` | Starting directory for search. When `None`, automatically detects project root using common markers (`.git`, `requirements.txt`, etc.) |
-| `pattern` | `str` | `"*.py"` | File pattern to match using glob syntax (e.g., `"*.csv"`, `"*.md"`, `"*"`) |
-| `max_depth` | `int` | `None` | Maximum directory depth to search. `None` for unlimited depth |
-
-**Returns**: 
-- `List[str]`: Sorted list of relative file paths matching the specified pattern
-
-**Examples**:
-```python
-# Find all Python files from project root
-files = list_project_files_recursive()
-
-# Find all CSV files with explicit root directory  
-data_files = list_project_files_recursive("./data", "*.csv")
-
-# Find all files with depth limit for performance
-limited_search = list_project_files_recursive(None, "*", max_depth=2)
-```
-
-**Project Root Detection Logic**:
-The function searches upward from the starting location for these markers:
-1. `.git` directory (version control root)
-2. `requirements.txt` (Python project dependencies)
-3. `pyproject.toml` (modern Python project)
-4. `setup.py` (traditional Python package)
-5. `.gitignore` (project boundary indicator)
-
-**Directory Filtering**:
-Automatically excludes these directories from search:
-- `.git` (version control)
-- `__pycache__` (Python bytecode)
-- `.venv`, `venv`, `ENV` (virtual environments)
-- `node_modules` (Node.js dependencies)
-- Any directory starting with `.` (hidden directories)
-
-**Error Handling**:
-- Returns empty list on permission errors
-- Logs warnings for inaccessible directories
-- Gracefully handles broken symlinks
-- Continues search despite individual directory failures
-
-**Performance Considerations**:
-- Use `max_depth` parameter for large projects
-- Pattern specificity improves performance (`"*.py"` vs `"*"`)
-- Automatic exclusion of common non-relevant directories
-
----
-
-### Core Actions (v0.1.0)
-
-#### `list_project_files`
-
-**Purpose**: Lists Python files in current working directory only (backward compatibility).
-
-**Function Signature**:
-```python
-def list_project_files() -> List[str]
-```
-
-**Parameters**: None
-
-**Returns**: 
-- `List[str]`: Sorted list of Python files (*.py) in current directory only
-
-**Use Case**: Quick local file discovery when you know you're in the target directory.
-
-#### `read_project_file`
-
-**Purpose**: Read and return complete contents of a specified file.
-
-**Function Signature**:
-```python
-def read_project_file(name: str) -> str
-```
-
-**Parameters**:
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `str` | Relative or absolute path to file to read |
-
-**Returns**: 
-- `str`: Complete file contents as string
-
-**Error Handling**:
-- Raises `FileNotFoundError` if file doesn't exist
-- Raises `PermissionError` if file not readable
-- Raises `UnicodeDecodeError` for non-text files
-
-**Examples**:
-```python
-# Read specific file
-content = read_project_file("src/agents/file_explorer/agent.py")
-
-# Read configuration file
-config = read_project_file("requirements.txt")
-```
-
-#### `terminate`
-
-**Purpose**: End agent session with final message to user.
-
-**Function Signature**:
-```python
-def terminate(message: str) -> str
-```
-
-**Parameters**:
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `message` | `str` | Final message to display to user |
-
-**Returns**: 
-- `str`: Formatted termination message
-
-**Use Case**: Proper session completion with results summary.
-
----
-
-## Action Registry Integration
-
-### Registering Actions
+### Tool Registration Decorator
 
 ```python
-from src.framework.actions.registry import ActionRegistry
-from src.agents.file_explorer.actions import create_file_explorer_actions
-
-# Initialize registry
-registry = ActionRegistry()
-
-# Register all file explorer actions
-for action in create_file_explorer_actions():
-    registry.register(action)
-
-# Access specific action
-recursive_action = registry.get_action("list_project_files_recursive")
+@register_tool(
+    tool_name: str = None,
+    description: str = None,
+    parameters_override: dict = None,
+    terminal: bool = False,
+    tags: List[str] = None
+)
 ```
 
-### Action Metadata
+**Parameters:**
+- `tool_name`: Tool identifier (defaults to function name)
+- `description`: Tool description (defaults to function docstring)
+- `parameters_override`: Custom parameter schema (defaults to auto-generated from type hints)
+- `terminal`: Whether tool terminates agent execution
+- `tags`: List of tags for categorization and filtering
 
-Each action includes comprehensive metadata for LLM function calling:
+**Example:**
+```python
+@register_tool(tags=["file_operations", "read"])
+def read_project_file(name: str) -> str:
+    """Read a file from the project"""
+    with open(name, "r", encoding='utf-8', errors='ignore') as f:
+        return f.read()
+```
 
+### Metadata Functions
+
+#### `get_tool_metadata`
+```python
+def get_tool_metadata(
+    func, 
+    tool_name=None, 
+    description=None, 
+    parameters_override=None, 
+    terminal=False, 
+    tags=None
+) -> dict
+```
+
+Extracts metadata from a function for tool registration. Automatically generates JSON schema from type hints.
+
+#### `to_llm_tools`
+```python
+def to_llm_tools(tools_metadata: List[dict]) -> List[dict]
+```
+
+Converts tool metadata to OpenAI function calling format.
+
+### Global Tool Registry
+
+The decorator system maintains global dictionaries:
+
+```python
+# Global registries (from src.framework.actions.decorators)
+tools = {}          # tool_name -> tool_metadata
+tools_by_tag = {}   # tag -> [tool_names]
+```
+
+## Action Registry
+
+### ActionRegistry (Base Class)
+
+```python
+class ActionRegistry:
+    def __init__(self)
+    def register(self, action: Action)
+    def get_action(self, name: str) -> Optional[Action]
+    def get_actions(self) -> List[Action]
+```
+
+### PythonActionRegistry (Enhanced)
+
+```python
+class PythonActionRegistry(ActionRegistry):
+    def __init__(self, tags: List[str] = None, tool_names: List[str] = None)
+```
+
+**Parameters:**
+- `tags`: Only include tools with ANY of these tags
+- `tool_names`: Only include these specific tool names
+
+**How it works:**
+1. Reads from global `tools` dictionary populated by decorators
+2. Filters tools based on tags or tool_names in constructor
+3. Creates `Action` objects and registers them with base class
+
+**Example:**
+```python
+# Include only file operation tools
+file_registry = PythonActionRegistry(tags=["file_operations"])
+
+# Include file operations AND system tools
+complete_registry = PythonActionRegistry(tags=["file_operations", "system"])
+
+# Include specific tools only
+custom_registry = PythonActionRegistry(tool_names=["read_project_file", "terminate"])
+```
+
+## Core Framework
+
+### Agent Class
+
+```python
+class Agent:
+    def __init__(self,
+                 goals: List[Goal],
+                 agent_language: AgentLanguage,
+                 action_registry: ActionRegistry,
+                 generate_response: Callable[[Prompt], str],
+                 environment: Environment)
+    
+    def run(self, user_input: str, memory: Optional[Memory] = None, max_iterations: int = 50) -> Memory
+```
+
+**Key Methods:**
+- `run()`: Main execution loop with goal-driven iteration
+- `construct_prompt()`: Builds LLM prompt from goals, memory, and actions
+- `get_action()`: Parses LLM response and retrieves corresponding action
+- `should_terminate()`: Checks if agent should stop execution
+
+### Goal Class
+
+```python
+@dataclass(frozen=True)
+class Goal:
+    priority: int
+    name: str
+    description: str
+```
+
+### Memory Class
+
+```python
+class Memory:
+    def add_memory(self, memory: dict)
+    def get_memories(self, limit: Optional[int] = None) -> List[Dict]
+    def copy_without_system_memories(self) -> Memory
+```
+
+**Memory Types:**
+- `"user"`: User input/requests
+- `"assistant"`: Agent responses/decisions
+- `"environment"`: Tool execution results
+- `"system"`: System messages
+
+### Environment Class
+
+```python
+class Environment:
+    def execute_action(self, action: Action, args: dict) -> dict
+    def format_result(self, result: Any) -> dict
+```
+
+**Returns formatted result:**
 ```python
 {
-    "name": "list_project_files_recursive",
-    "description": "Recursively lists files matching a pattern...",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "root_dir": {"type": "string", "description": "...", "default": None},
-            "pattern": {"type": "string", "description": "...", "default": "*.py"},
-            "max_depth": {"type": "integer", "description": "..."}
-        },
-        "required": []
-    },
-    "terminal": False
+    "tool_executed": True,
+    "result": "actual_result",
+    "timestamp": "2024-01-01T12:00:00+0000"
 }
 ```
 
----
+## Available Tools
 
-## Error Handling Patterns
+These are the actual tools implemented in `src/agents/file_explorer/actions.py`:
 
-### Graceful Degradation
+### File Operations
+
+#### `read_project_file`
+```python
+@register_tool(tags=["file_operations", "read"])
+def read_project_file(name: str) -> str
+```
+**Description:** Read a file from the project  
+**Parameters:** `name` - File path to read  
+**Returns:** File contents as string  
+
+#### `list_project_files`
+```python
+@register_tool(tags=["file_operations", "list"])
+def list_project_files() -> List[str]
+```
+**Description:** Lists Python files in current directory only  
+**Returns:** Sorted list of .py files in current directory  
+
+#### `find_project_root`
+```python
+@register_tool(tags=["file_operations", "search"])
+def find_project_root(start_path: str = ".") -> str
+```
+**Description:** Find project root by looking for common markers  
+**Parameters:** `start_path` - Directory to start searching from  
+**Returns:** Path to project root directory  
+**Markers:** `.git`, `pyproject.toml`, `setup.py`, `requirements.txt`, `.gitignore`
+
+#### `list_project_files_recursive`
+```python
+@register_tool(tags=["file_operations", "search", "recursive"])
+def list_project_files_recursive(
+    root_dir: str = None, 
+    pattern: str = "*.py",
+    max_depth: int = None
+) -> List[str]
+```
+**Description:** Recursively search for files matching pattern  
+**Parameters:**
+- `root_dir`: Starting directory (None = auto-detect project root)
+- `pattern`: File pattern to match (default: "*.py")
+- `max_depth`: Maximum search depth (None = unlimited)
+
+**Returns:** List of relative file paths matching pattern  
+**Excludes:** `.git`, `__pycache__`, `.venv`, `node_modules`, hidden directories
+
+### System Tools
+
+#### `terminate`
+```python
+@register_tool(tags=["system"], terminal=True)
+def terminate(message: str) -> str
+```
+**Description:** Terminates agent execution with final message  
+**Parameters:** `message` - Final message to return  
+**Returns:** Message with termination note  
+
+## Agent Factories
+
+All located in `src/agents/file_explorer/agent.py`:
+
+### `create_file_explorer_agent()`
+```python
+def create_file_explorer_agent() -> Agent
+```
+
+**Purpose:** General file exploration and documentation  
+**Tools:** `["file_operations", "system"]` tags  
+**Goals:**
+1. Gather Information - Read project files
+2. Generate Documentation - Create documentation
+3. Terminate - Complete with results
+
+### `create_readme_agent()`
+```python
+def create_readme_agent() -> Agent
+```
+
+**Purpose:** Specialized README generation  
+**Tools:** `["file_operations", "system"]` tags  
+**Goals:**
+1. Gather Information - Deep project understanding
+2. Terminate - Provide complete README
+
+### `create_analysis_agent()`
+```python
+def create_analysis_agent() -> Agent
+```
+
+**Purpose:** Code analysis and architecture insights  
+**Tools:** `["file_operations", "search", "system"]` tags  
+**Goals:**
+1. Code Analysis - Analyze structure
+2. Generate Analysis - Provide insights and recommendations
+
+## LLM Integration
+
+### LLM Client
+
+```python
+def generate_response(prompt: Prompt, model: str = "gpt-4o") -> str
+```
+
+**Implementation:** Uses LiteLLM for multi-provider support  
+**Parameters:**
+- `prompt`: Prompt object with messages and tools
+- `model`: Model identifier
+
+**Supported Models (via LiteLLM):**
+- OpenAI: `"gpt-4o"`, `"gpt-4o-mini"`
+- Anthropic: `"claude-3-5-sonnet-20241022"`
+- And others supported by LiteLLM
+
+**Response Handling:**
+- With tools: Returns JSON string with tool call
+- Without tools: Returns text response
+
+### Prompt Class
+
+```python
+@dataclass
+class Prompt:
+    messages: List[Dict] = field(default_factory=list)
+    tools: List[Dict] = field(default_factory=list)
+```
+
+### Language Processing
+
+```python
+class AgentFunctionCallingActionLanguage(AgentLanguage):
+    def construct_prompt(self, actions, environment, goals, memory) -> Prompt
+    def parse_response(self, response: str) -> dict
+```
+
+**Response Format:**
+```python
+{
+    "tool": "tool_name",
+    "args": {"param1": "value1", "param2": "value2"}
+}
+```
+
+## Usage Examples
+
+### Basic Agent Creation and Execution
+
+```python
+from src.agents.file_explorer.agent import create_file_explorer_agent
+
+# Create agent
+agent = create_file_explorer_agent()
+
+# Execute task
+memory = agent.run("Analyze this project structure")
+
+# Get results
+results = memory.get_memories()
+final_result = results[-1] if results else None
+```
+
+### Custom Registry Creation
+
+```python
+from src.framework.actions.registry import PythonActionRegistry
+
+# File operations only
+file_registry = PythonActionRegistry(tags=["file_operations"])
+
+# Search-focused tools
+search_registry = PythonActionRegistry(tags=["search"])
+
+# Specific tools
+custom_registry = PythonActionRegistry(
+    tool_names=["read_project_file", "list_project_files_recursive"]
+)
+```
+
+### Creating Custom Tools
+
+```python
+from src.framework.actions.decorators import register_tool
+
+@register_tool(tags=["analysis", "custom"])
+def count_lines_of_code(file_path: str) -> int:
+    """Count lines of code in a file."""
+    with open(file_path, 'r') as f:
+        return len(f.readlines())
+
+# Tool is automatically available to agents with "analysis" or "custom" tags
+```
+
+## Error Handling
+
+### Common Error Patterns
+
+**File Not Found:**
 ```python
 try:
-    files = list_project_files_recursive(root_dir, pattern)
-except PermissionError:
-    # Fallback to current directory search
-    files = list_project_files()
-except Exception as e:
-    # Log error and return empty result
-    print(f"Search failed: {e}")
-    files = []
+    content = read_project_file("nonexistent.py")
+except FileNotFoundError:
+    # Handle missing file
 ```
 
-### Validation Best Practices
+**Tool Not Found:**
 ```python
-# Validate inputs before processing
-if root_dir and not os.path.exists(root_dir):
-    raise ValueError(f"Directory not found: {root_dir}")
-
-if max_depth is not None and max_depth < 0:
-    raise ValueError("max_depth must be non-negative")
+action, invocation = agent.get_action(response)
+if not action:
+    print(f"Unknown action: {invocation['tool']}")
 ```
 
----
-
-## Integration Examples
-
-### FinTech Use Cases
-
+**LLM Response Parsing:**
 ```python
-# Discover all data files for analysis
-data_files = list_project_files_recursive("./data", "*.csv")
-for file in data_files:
-    content = read_project_file(file)
-    # Process trading data, portfolio information, etc.
-
-# Find all configuration files
-config_files = list_project_files_recursive(None, "*.json")
-# Analyze system configurations, API settings, etc.
-
-# Locate all documentation
-docs = list_project_files_recursive("./docs", "*.md") 
-# Generate documentation summaries, compliance reports, etc.
+# AgentFunctionCallingActionLanguage.parse_response() handles this
+try:
+    return json.loads(response)
+except Exception:
+    return {"tool": "terminate", "args": {"message": response}}
 ```
 
-### Enterprise Workflow Integration
+## Configuration
+
+### Environment Variables
+
+```bash
+# Required for LLM functionality
+export OPENAI_API_KEY="your-openai-key"
+export ANTHROPIC_API_KEY="your-anthropic-key"  # Optional
+```
+
+### Agent Configuration
 
 ```python
-# CI/CD Pipeline Integration
-def analyze_project_structure():
-    """Analyze entire project for CI/CD reporting"""
-    python_files = list_project_files_recursive(None, "*.py")
-    test_files = list_project_files_recursive("./tests", "test_*.py")
-    
-    return {
-        "source_files": len(python_files),
-        "test_files": len(test_files),
-        "test_coverage": len(test_files) / len(python_files) * 100
-    }
+# Custom goals
+custom_goals = [
+    Goal(priority=1, name="Task", description="Complete the task"),
+    Goal(priority=2, name="Report", description="Report results")
+]
+
+# Custom registry
+registry = PythonActionRegistry(tags=["file_operations", "system"])
+
+# Custom agent
+agent = Agent(
+    goals=custom_goals,
+    agent_language=AgentFunctionCallingActionLanguage(),
+    action_registry=registry,
+    generate_response=lambda p: generate_response(p, model="gpt-4o-mini"),
+    environment=Environment()
+)
 ```
+
+This API documentation accurately reflects your current implementation and can serve as a reference for understanding and extending the framework.

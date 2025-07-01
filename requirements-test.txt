@@ -1,26 +1,17 @@
-# Testing dependencies for File Explorer AI Agent
+# Testing dependencies for File Explorer AI Agent Framework
 # Install with: pip install -r requirements-test.txt
 
+# Include production dependencies
+-r requirements.txt
+
 # Core testing framework
-pytest>=7.4.0
-pytest-cov>=4.1.0          # Coverage reporting
-pytest-mock>=3.11.1        # Mocking utilities
-pytest-xdist>=3.3.1        # Parallel test execution
+pytest>=7.0.0
 
-# Test utilities
-pytest-timeout>=2.1.0      # Test timeout handling
-pytest-benchmark>=4.0.0    # Performance benchmarking
-pytest-html>=3.2.0         # HTML test reports
+# Test utilities used in current test suite
+pytest-cov>=4.1.0          # Coverage reporting (used in current tests)
+pytest-mock>=3.11.0        # Mocking utilities (for LLM mocking)
 
-# Development utilities  
-pytest-watch>=4.2.0        # Auto-run tests on file changes
-pytest-clarity>=1.0.1      # Better test failure output
-
-# Code quality
-pytest-flake8>=1.1.1       # Style checking
-pytest-mypy>=0.10.3        # Type checking
-
-# Optional: Advanced testing features
-# pytest-asyncio>=0.21.1   # Async test support
-# pytest-django>=4.5.2     # Django integration
-# pytest-flask>=1.2.0      # Flask integration
+# Optional: Additional testing tools (uncomment if needed)
+# pytest-xdist>=3.3.0      # Parallel test execution
+# pytest-html>=3.2.0       # HTML test reports
+# pytest-benchmark>=4.0.0  # Performance benchmarking
