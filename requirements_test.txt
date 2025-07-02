@@ -1,0 +1,23 @@
+# Testing dependencies for File Explorer AI Agent Framework
+# Multi-Provider LLM Support with Comprehensive Test Coverage
+# Install with: pip install -r requirements-test.txt
+
+# Include production dependencies
+-r requirements.txt
+
+# Core testing framework
+pytest>=7.0.0
+
+# Test utilities used in current test suite
+pytest-cov>=4.1.0          # Coverage reporting (used in LLM and file operation tests)
+pytest-mock>=3.11.0        # Mocking utilities (for LLM provider mocking)
+
+# Enhanced testing for multi-provider LLM system
+pytest-env>=0.8.0          # Environment variable management for testing
+pytest-timeout>=2.1.0      # Timeout handling for live LLM API tests
+
+# Optional: Additional testing tools (uncomment if needed)
+# pytest-xdist>=3.3.0      # Parallel test execution (useful for large test suites)
+# pytest-html>=3.2.0       # HTML test reports for CI/CD
+# pytest-benchmark>=4.0.0  # Performance benchmarking for LLM operations
+# pytest-asyncio>=0.21.0   # Async testing support for future async LLM calls

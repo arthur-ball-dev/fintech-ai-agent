@@ -1,14 +1,160 @@
 # API Documentation
 
-Complete reference for the File Explorer AI Agent Framework based on actual implementation.
+Complete reference for the File Explorer AI Agent Framework with Multi-Provider LLM Support.
 
 ## Table of Contents
-1. [Decorator System](#decorator-system)
-2. [Action Registry](#action-registry)
-3. [Core Framework](#core-framework)
-4. [Available Tools](#available-tools)
-5. [Agent Factories](#agent-factories)
-6. [LLM Integration](#llm-integration)
+1. [Multi-Provider LLM System](#multi-provider-llm-system)
+2. [Decorator System](#decorator-system)
+3. [Action Registry](#action-registry)
+4. [Core Framework](#core-framework)
+5. [Available Tools](#available-tools)
+6. [Agent Factories](#agent-factories)
+7. [Legacy LLM Integration](#legacy-llm-integration)
+
+## Multi-Provider LLM System
+
+### LLMConfig Class
+
+```python
+class LLMConfig:
+    def __init__(self)
+    def get_model_name(self, provider: str, model_type: str = 'default') -> str
+    def validate_provider(self, provider: str) -> bool
+    def get_available_providers(self) -> List[str]
+```
+
+**Configuration Management:**
+- **API Keys**: Reads from system environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
+- **Provider Selection**: Configurable default provider via `DEFAULT_LLM_PROVIDER`
+- **Model Tiers**: Cost-optimized model selection per provider
+
+**Model Tier System:**
+```python
+models = {
+    'openai': {
+        'fast': 'gpt-3.5-turbo',        # Cheapest, fastest
+        'default': 'gpt-4o-mini',       # Balanced cost/performance  
+        'advanced': 'gpt-4o'            # Highest quality, most expensive
+    },
+    'anthropic': {
+        'fast': 'claude-3-haiku-20240307',           # Cheapest, fastest
+        'default': 'claude-3-5-sonnet-20241022',     # Balanced cost/performance
+        'advanced': 'claude-3-opus-20240229'         # Highest quality, most expensive
+    }
+}
+```
+
+### LLMClient Class
+
+```python
+class LLMClient:
+    def __init__(self)
+    def generate_response(
+        self, 
+        prompt: Prompt, 
+        provider: Optional[str] = None,
+        model: Optional[str] = None,
+        model_type: str = 'default',
+        **kwargs
+    ) -> str
+    def get_provider_status(self) -> Dict[str, Dict[str, Any]]
+    def list_available_models(self, provider: Optional[str] = None) -> Dict[str, List[str]]
+```
+
+**Enterprise Features:**
+- **Multi-Provider Support**: OpenAI and Anthropic with extensible architecture
+- **Automatic Failover**: Falls back to alternative provider on failure
+- **Cost Optimization**: Model tier selection for different use cases
+- **Professional Logging**: Detailed error reporting with emoji indicators
+- **Configuration Validation**: Validates API keys and provider availability
+
+**Example Usage:**
+```python
+# Initialize client
+client = LLMClient()
+
+# Basic usage (auto-selects provider and model)
+response = client.generate_response(prompt)
+
+# Specific provider selection
+response = client.generate_response(prompt, provider='anthropic')
+
+# Model tier selection
+response = client.generate_response(prompt, provider='openai', model_type='fast')
+
+# Custom model override
+response = client.generate_response(prompt, provider='anthropic', model='claude-3-opus-20240229')
+
+# With custom parameters
+response = client.generate_response(
+    prompt, 
+    provider='openai', 
+    model_type='advanced',
+    temperature=0.9,
+    max_tokens=2048
+)
+```
+
+**Provider Status Checking:**
+```python
+client = LLMClient()
+
+# Get detailed provider status
+status = client.get_provider_status()
+# Returns:
+# {
+#     'openai': {
+#         'available': True,
+#         'models': {'fast': 'gpt-3.5-turbo', 'default': 'gpt-4o-mini', 'advanced': 'gpt-4o'},
+#         'is_default': True
+#     },
+#     'anthropic': {
+#         'available': True,
+#         'models': {'fast': 'claude-3-haiku-20240307', ...},
+#         'is_default': False
+#     }
+# }
+
+# List available models
+models = client.list_available_models()
+# Returns: {'openai': ['gpt-3.5-turbo', 'gpt-4o-mini', 'gpt-4o'], 'anthropic': [...]}
+```
+
+**Error Handling and Fallback:**
+```python
+# Automatic fallback example
+try:
+    # Primary provider attempt
+    response = client.generate_response(prompt, provider='openai')
+except Exception:
+    # Automatically tries fallback provider (anthropic)
+    # Logs: "🔄 Attempting fallback: openai → anthropic"
+    pass
+```
+
+### Environment Variable Configuration
+
+**Required Environment Variables:**
+```bash
+# At least one provider required
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Optional configuration
+export DEFAULT_LLM_PROVIDER="openai"  # or "anthropic"
+```
+
+**Validation:**
+```python
+config = LLMConfig()
+
+# Check specific provider
+if config.validate_provider('openai'):
+    print("OpenAI configured")
+
+# Get all available providers
+available = config.get_available_providers()  # ['openai', 'anthropic']
+```
 
 ## Decorator System
 
@@ -277,27 +423,28 @@ def create_analysis_agent() -> Agent
 1. Code Analysis - Analyze structure
 2. Generate Analysis - Provide insights and recommendations
 
-## LLM Integration
+## Legacy LLM Integration
 
-### LLM Client
+### Backward Compatibility Function
 
 ```python
 def generate_response(prompt: Prompt, model: str = "gpt-4o") -> str
 ```
 
-**Implementation:** Uses LiteLLM for multi-provider support  
-**Parameters:**
-- `prompt`: Prompt object with messages and tools
-- `model`: Model identifier
+**Implementation:** Maintains original function signature while providing enhanced capabilities
+**Smart Provider Detection:** Automatically detects provider based on model name
+- Models containing `"claude"` → Anthropic provider
+- Models containing `"gpt"` → OpenAI provider
+- Other models → Default provider
 
-**Supported Models (via LiteLLM):**
-- OpenAI: `"gpt-4o"`, `"gpt-4o-mini"`
-- Anthropic: `"claude-3-5-sonnet-20241022"`
-- And others supported by LiteLLM
+**Example:**
+```python
+# Legacy usage still works
+response = generate_response(prompt, model="gpt-4o")
+response = generate_response(prompt, model="claude-3-5-sonnet-20241022")
 
-**Response Handling:**
-- With tools: Returns JSON string with tool call
-- Without tools: Returns text response
+# Automatically routes to correct provider
+```
 
 ### Prompt Class
 
@@ -326,79 +473,143 @@ class AgentFunctionCallingActionLanguage(AgentLanguage):
 
 ## Usage Examples
 
-### Basic Agent Creation and Execution
+### Multi-Provider Agent Creation
 
 ```python
+from src.framework.llm.client import LLMClient
 from src.agents.file_explorer.agent import create_file_explorer_agent
 
-# Create agent
-agent = create_file_explorer_agent()
+# Create client with specific provider
+client = LLMClient()
 
-# Execute task
+# Use with existing agent factories (uses default provider)
+agent = create_file_explorer_agent()
 memory = agent.run("Analyze this project structure")
 
-# Get results
-results = memory.get_memories()
-final_result = results[-1] if results else None
+# Check which providers are available
+status = client.get_provider_status()
+for provider, info in status.items():
+    print(f"{provider}: {'✅' if info['available'] else '❌'}")
 ```
 
-### Custom Registry Creation
+### Custom Agent with Specific Provider
 
 ```python
+from src.framework.core.agent import Agent
+from src.framework.core.goals import Goal
 from src.framework.actions.registry import PythonActionRegistry
+from src.framework.language.function_calling import AgentFunctionCallingActionLanguage
+from src.framework.environment.environment import Environment
+from src.framework.llm.client import LLMClient
 
-# File operations only
-file_registry = PythonActionRegistry(tags=["file_operations"])
+# Create LLM client with specific configuration
+client = LLMClient()
 
-# Search-focused tools
-search_registry = PythonActionRegistry(tags=["search"])
+# Custom generate_response function with provider selection
+def custom_generate_response(prompt):
+    return client.generate_response(
+        prompt, 
+        provider='anthropic',  # Force Anthropic
+        model_type='advanced'  # Use best model
+    )
 
-# Specific tools
-custom_registry = PythonActionRegistry(
-    tool_names=["read_project_file", "list_project_files_recursive"]
+# Create custom agent
+custom_goals = [Goal(priority=1, name="Task", description="Complete analysis")]
+registry = PythonActionRegistry(tags=["file_operations", "system"])
+
+agent = Agent(
+    goals=custom_goals,
+    agent_language=AgentFunctionCallingActionLanguage(),
+    action_registry=registry,
+    generate_response=custom_generate_response,
+    environment=Environment()
 )
 ```
 
-### Creating Custom Tools
+### Cost Optimization Examples
 
 ```python
-from src.framework.actions.decorators import register_tool
+client = LLMClient()
 
-@register_tool(tags=["analysis", "custom"])
-def count_lines_of_code(file_path: str) -> int:
-    """Count lines of code in a file."""
-    with open(file_path, 'r') as f:
-        return len(f.readlines())
+# Fast, cheap responses for simple tasks
+quick_response = client.generate_response(
+    prompt, 
+    provider='openai', 
+    model_type='fast'  # gpt-3.5-turbo
+)
 
-# Tool is automatically available to agents with "analysis" or "custom" tags
+# Balanced performance for most tasks
+normal_response = client.generate_response(
+    prompt, 
+    provider='anthropic', 
+    model_type='default'  # claude-3-5-sonnet
+)
+
+# High-quality responses for complex tasks
+advanced_response = client.generate_response(
+    prompt, 
+    provider='openai', 
+    model_type='advanced'  # gpt-4o
+)
 ```
 
 ## Error Handling
 
-### Common Error Patterns
+### Provider Availability Errors
 
-**File Not Found:**
 ```python
 try:
-    content = read_project_file("nonexistent.py")
-except FileNotFoundError:
-    # Handle missing file
+    client = LLMClient()
+except ValueError as e:
+    print(f"No LLM providers configured: {e}")
+    # Handle missing API keys
 ```
 
-**Tool Not Found:**
-```python
-action, invocation = agent.get_action(response)
-if not action:
-    print(f"Unknown action: {invocation['tool']}")
-```
+### Provider-Specific Errors
 
-**LLM Response Parsing:**
 ```python
-# AgentFunctionCallingActionLanguage.parse_response() handles this
 try:
-    return json.loads(response)
-except Exception:
-    return {"tool": "terminate", "args": {"message": response}}
+    response = client.generate_response(prompt, provider='anthropic')
+except ValueError as e:
+    print(f"Provider not available: {e}")
+    # Handle invalid provider selection
+```
+
+### Automatic Fallback Handling
+
+```python
+# Fallback is automatic - no special handling needed
+response = client.generate_response(prompt)
+# If primary provider fails, automatically tries fallback
+# Logs fallback attempts with professional formatting
+```
+
+## Diagnostic Tools
+
+### Provider Status Checking
+
+```python
+# Use the diagnostic script
+# python scripts/diagnostics/check_llm_providers.py
+
+# Or check programmatically
+client = LLMClient()
+status = client.get_provider_status()
+
+for provider, info in status.items():
+    print(f"{provider}: {info}")
+```
+
+### Model Listing
+
+```python
+client = LLMClient()
+
+# List all available models
+all_models = client.list_available_models()
+
+# List models for specific provider
+openai_models = client.list_available_models('openai')
 ```
 
 ## Configuration
@@ -406,31 +617,23 @@ except Exception:
 ### Environment Variables
 
 ```bash
-# Required for LLM functionality
-export OPENAI_API_KEY="your-openai-key"
-export ANTHROPIC_API_KEY="your-anthropic-key"  # Optional
+# Required (at least one)
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Optional
+export DEFAULT_LLM_PROVIDER="openai"  # or "anthropic"
 ```
 
-### Agent Configuration
+### Provider Priority Configuration
 
 ```python
-# Custom goals
-custom_goals = [
-    Goal(priority=1, name="Task", description="Complete the task"),
-    Goal(priority=2, name="Report", description="Report results")
-]
+# Set default provider via environment
+os.environ['DEFAULT_LLM_PROVIDER'] = 'anthropic'
 
-# Custom registry
-registry = PythonActionRegistry(tags=["file_operations", "system"])
-
-# Custom agent
-agent = Agent(
-    goals=custom_goals,
-    agent_language=AgentFunctionCallingActionLanguage(),
-    action_registry=registry,
-    generate_response=lambda p: generate_response(p, model="gpt-4o-mini"),
-    environment=Environment()
-)
+# Or programmatically
+config = LLMConfig()
+config.default_provider = 'anthropic'
 ```
 
-This API documentation accurately reflects your current implementation and can serve as a reference for understanding and extending the framework.
+This enhanced API documentation reflects the complete multi-provider LLM system implementation with enterprise-grade features for professional AI agent development.

@@ -1,4 +1,5 @@
 # Development dependencies for File Explorer AI Agent Framework
+# Multi-Provider LLM Support with Enhanced Testing
 # For testing dependencies, use: pip install -r requirements-test.txt
 
 # Include production dependencies
@@ -9,6 +10,10 @@ black>=23.0.0               # Code formatting
 flake8>=6.0.0              # Linting  
 mypy>=1.5.0                # Type checking
 
+# Enhanced development tools for LLM development
+pre-commit>=3.0.0          # Git hooks for code quality
+
 # Optional: Documentation generation (uncomment if needed)
 # mkdocs>=1.5.0             # Documentation site generation
 # mkdocs-material>=9.0.0    # Material theme for docs
+# mkdocs-mermaid2-plugin>=0.6.0  # Mermaid diagrams for architecture docs
