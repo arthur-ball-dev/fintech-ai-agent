@@ -1,10 +1,14 @@
 # Core dependencies for File Explorer AI Agent Framework
+# Multi-Provider LLM Support with Enterprise Features
 
 # LLM Integration - Multi-provider support
 litellm>=1.0.0
 
-# OpenAI API support (primary LLM provider)
+# OpenAI API support
 openai>=1.0.0
+
+# Anthropic API support (Claude)
+anthropic>=0.21.0
 
 # Testing framework
 pytest>=7.0.0
