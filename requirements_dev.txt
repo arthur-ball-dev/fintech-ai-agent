@@ -1,6 +1,5 @@
-# Development dependencies for File Explorer AI Agent Framework
-# Multi-Provider LLM Support with Enhanced Testing
-# For testing dependencies, use: pip install -r requirements-test.txt
+# Development dependencies for FinTech AI Agent Framework
+# Includes code quality and development tools
 
 # Include production dependencies
 -r requirements.txt
@@ -10,10 +9,15 @@ black>=23.0.0               # Code formatting
 flake8>=6.0.0              # Linting  
 mypy>=1.5.0                # Type checking
 
-# Enhanced development tools for LLM development
+# Enhanced development tools
 pre-commit>=3.0.0          # Git hooks for code quality
+isort>=5.12.0              # Import sorting
 
-# Optional: Documentation generation (uncomment if needed)
-# mkdocs>=1.5.0             # Documentation site generation
-# mkdocs-material>=9.0.0    # Material theme for docs
-# mkdocs-mermaid2-plugin>=0.6.0  # Mermaid diagrams for architecture docs
+# Documentation tools
+mkdocs>=1.5.0              # Documentation site generation
+mkdocs-material>=9.0.0     # Material theme for docs
+mkdocstrings>=0.24.0       # Auto-generate docs from docstrings
+
+# Development utilities
+ipython>=8.0.0             # Enhanced Python shell
+jupyter>=1.0.0             # Notebook support for experiments

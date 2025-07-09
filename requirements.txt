@@ -1,4 +1,4 @@
-# Core dependencies for File Explorer AI Agent Framework
+# Core dependencies for FinTech AI Agent Framework
 # Multi-Provider LLM Support with Enterprise Features
 
 # LLM Integration - Multi-provider support
@@ -9,6 +9,16 @@ openai>=1.0.0
 
 # Anthropic API support (Claude)
 anthropic>=0.21.0
+
+# FinTech Analysis Dependencies
+# Pattern detection and text analysis
+regex>=2023.0.0
+
+# AST parsing for code analysis
+# (built-in, no separate requirement)
+
+# File system operations
+pathlib>=1.0.8  # Enhanced path handling
 
 # Testing framework
 pytest>=7.0.0
