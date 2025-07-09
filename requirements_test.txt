@@ -1,6 +1,5 @@
-# Testing dependencies for File Explorer AI Agent Framework
-# Multi-Provider LLM Support with Comprehensive Test Coverage
-# Install with: pip install -r requirements-test.txt
+# Testing dependencies for FinTech AI Agent Framework
+# Comprehensive test coverage for financial analysis features
 
 # Include production dependencies
 -r requirements.txt
@@ -8,16 +7,26 @@
 # Core testing framework
 pytest>=7.0.0
 
-# Test utilities used in current test suite
-pytest-cov>=4.1.0          # Coverage reporting (used in LLM and file operation tests)
-pytest-mock>=3.11.0        # Mocking utilities (for LLM provider mocking)
+# Test utilities
+pytest-cov>=4.1.0          # Coverage reporting
+pytest-mock>=3.11.0        # Mocking utilities
+pytest-env>=0.8.0          # Environment variable management
+pytest-timeout>=2.1.0      # Timeout handling
 
-# Enhanced testing for multi-provider LLM system
-pytest-env>=0.8.0          # Environment variable management for testing
-pytest-timeout>=2.1.0      # Timeout handling for live LLM API tests
+# FinTech test dependencies
+faker>=20.0.0              # Generate test financial data
+hypothesis>=6.0.0          # Property-based testing for patterns
 
-# Optional: Additional testing tools (uncomment if needed)
-# pytest-xdist>=3.3.0      # Parallel test execution (useful for large test suites)
-# pytest-html>=3.2.0       # HTML test reports for CI/CD
-# pytest-benchmark>=4.0.0  # Performance benchmarking for LLM operations
-# pytest-asyncio>=0.21.0   # Async testing support for future async LLM calls
+# Performance testing
+pytest-benchmark>=4.0.0    # Performance benchmarking
+
+# Async testing support
+pytest-asyncio>=0.21.0     # For future async features
+
+# Test reporting
+pytest-html>=3.2.0         # HTML test reports
+pytest-json-report>=1.5.0  # JSON test reports for CI/CD
+
+# Additional testing tools
+responses>=0.23.0          # Mock HTTP responses
+freezegun>=1.2.0          # Time mocking for financial calculations
