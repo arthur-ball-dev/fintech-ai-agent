@@ -19,6 +19,7 @@ hypothesis>=6.0.0          # Property-based testing for patterns
 
 # Performance testing
 pytest-benchmark>=4.0.0    # Performance benchmarking
+psutil>=5.9.0              # System and process utilities for performance testing
 
 # Async testing support
 pytest-asyncio>=0.21.0     # For future async features

@@ -448,3 +448,66 @@ pytest --cov=src --cov-report=html
 ```
 
 This architecture demonstrates production-ready design suitable for enterprise financial technology environments with comprehensive security, testing, and compliance considerations.
+
+---
+
+## 🎪 Demo Trading Platform Technical Design
+
+### Platform Components
+
+The demo trading platform serves as a comprehensive testing environment with deliberate vulnerabilities designed to validate the AI agents' analytical capabilities.
+
+**Core Modules:**
+```python
+demo_trading_platform/
+├── main.py                 # FastAPI entry point with architectural flaws
+├── trading/                # Trading logic with risk management issues
+├── analytics/              # Performance analysis with numpy inefficiencies
+├── auth/                   # Authentication with security vulnerabilities
+├── compliance/             # Regulatory modules with compliance gaps
+└── data/                   # Data management with PII exposure risks
+```
+
+**Pattern Distribution:**
+- **Risk Management**: 90+ position_limit patterns across 6 files
+- **Performance**: 125+ numpy anti-patterns in analytics modules
+- **Security**: 115+ SSL/TLS violations in external communications
+- **Architecture**: 27+ FastAPI misuse patterns in main application
+- **Authentication**: 45+ bcrypt misuse cases in security modules
+
+**Vulnerability Categories:**
+
+| **Category** | **Technical Implementation** | **Detection Method** |
+|--------------|------------------------------|---------------------|
+| Position Limits | Hardcoded constants, weak validation logic | Regex pattern matching |
+| Performance | Manual calculations, O(n²) algorithms, deprecated functions | AST parsing + pattern detection |
+| SSL/TLS | `verify=False`, HTTP endpoints, weak contexts | String pattern + import analysis |
+| Architecture | Monolithic design, poor separation, blocking operations | Framework usage patterns |
+| Authentication | Weak hashing, PII exposure, hardcoded secrets | Security pattern analysis |
+
+**Agent Testing Matrix:**
+
+The platform is designed to provide consistent results across different analysis modes:
+
+```python
+# Expected Analysis Results
+{
+    'pattern_based': {
+        'execution_time': '<100ms',
+        'consistency': '100%',
+        'pattern_counts': 'deterministic'
+    },
+    'llm_enhanced': {
+        'execution_time': '1-5s',
+        'insights': 'contextual',
+        'recommendations': 'strategic'
+    },
+    'hybrid_mode': {
+        'execution_time': '2-8s', 
+        'coverage': 'comprehensive',
+        'business_value': 'maximum'
+    }
+}
+```
+
+This technical implementation ensures that the demo platform provides realistic, measurable results for evaluating AI agent capabilities in financial code analysis scenarios.
